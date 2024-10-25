@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Stalkit</string>
+
+    <string name="search_placeholder">Search...</string>
+
+    <string name="error_occurred">Error occurred.</string>
+
+    <string name="login">Login</string>
+
+    <string name="logout">Logout</string>
+
+
+
+</resources>
