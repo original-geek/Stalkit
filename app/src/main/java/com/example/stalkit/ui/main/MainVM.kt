@@ -10,9 +10,15 @@ import com.example.stalkit.data.login.Profile
 import com.example.stalkit.data.login.UserData
 import com.example.stalkit.data.repositories.UserInfoRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,7 +41,7 @@ class MainVM @Inject constructor(
 ) : ViewModel() {
 
     private val _profileState = MutableStateFlow<CurrentUserProfileState>(CurrentUserProfileState.Idle)
-    val profileState: StateFlow<CurrentUserProfileState> = _profileState
+    val profileState: StateFlow<CurrentUserProfileState> = _profileState.asStateFlow()
 
     private val entityFlow = userData.loginFlow
 
@@ -43,6 +49,7 @@ class MainVM @Inject constructor(
 
 
     init {
+        Anal.print("MainVM init")
         viewModelScope.launch {
             entityFlow.collect { entity ->
                 loadUserInfo(entity)
@@ -56,7 +63,7 @@ class MainVM @Inject constructor(
         }
     }
 
-    fun logout() {
+    private fun logout() {
         viewModelScope.launch {
             entity?.let {
                 userData.logout(it)

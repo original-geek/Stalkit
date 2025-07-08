@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.stalkit.App
@@ -36,7 +37,7 @@ import com.example.stalkit.ui.screens.video_search.rememberVideoSearchContainer
 
 @Composable
 fun CurrentUserProfile(mainVM: MainVM, login: () -> Unit) {
-    val state = mainVM.profileState.collectAsState()
+    val state = mainVM.profileState.collectAsStateWithLifecycle()
     var profile: Profile? = null
     when (state.value) {
         CurrentUserProfileState.Idle -> {
@@ -51,7 +52,7 @@ fun CurrentUserProfile(mainVM: MainVM, login: () -> Unit) {
     CurrentUserProfile(profile = profile, setLoggedIn = { b ->
         if (!b)
             mainVM.sendIntent(CurrentUserProfileIntent.Logout)
-        else
+        else 
             login()
     })
 }

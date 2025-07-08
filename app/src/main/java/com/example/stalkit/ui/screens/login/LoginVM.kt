@@ -2,6 +2,7 @@ package com.example.stalkit.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.stalkit.Anal
 import com.example.stalkit.data.db.LoginEntity
 import com.example.stalkit.data.login.LoginHelper
 import com.example.stalkit.data.login.LoginStatus
@@ -10,6 +11,8 @@ import com.example.stalkit.data.login.UserData
 import com.example.stalkit.ui.main.CurrentUserProfileState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,8 +32,12 @@ sealed interface LoginIntent {
 class LoginVM @Inject constructor(private val userData: UserData) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
-    val loginState: StateFlow<LoginState> = _loginState
+    val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
+
+    init {
+        Anal.print("LoginVM init")
+    }
 
     private fun login() {
         viewModelScope.launch {

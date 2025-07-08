@@ -1,21 +1,19 @@
 package com.example.stalkit.ui.main
 
-import kotlinx.serialization.Serializable
 
-@Serializable
-sealed class Routes {
+object RouteArgs {
+    const val VIDEO_ARG = "video"
+}
 
-    companion object {
-        const val VIDEO_ARG = "video"
-        const val PROFILE_ARG = "profile"
-    }
+object VideosTab
 
-    @Serializable
-    object VideoView: Routes()
+enum class Routes {
 
-    @Serializable
-    object Videos: Routes()
+    Home,
 
-    @Serializable
-    object Login: Routes()
+    Videos,
+
+    Video,
+
+    Login
 }

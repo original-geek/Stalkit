@@ -10,12 +10,17 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.stalkit.Anal
 import com.example.stalkit.data.entities.Video
@@ -33,15 +38,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun StalkitApp(mainContainer: MainContainer = rememberMainContainer(),
                mainVM: MainVM = viewModel(factory = mainContainer.vmFactory)) {
+    Anal.print("StalkitApp")
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+    val isHomeScreen = navController.previousBackStackEntry == null
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
                 CurrentUserProfile(mainVM, login = {
-                    navController.navigate(Routes.Login)
+                    navController.navigate(Routes.Login.name)
+                    scope.launch { drawerState.close() }
                 })
             }
         },
@@ -49,42 +58,58 @@ fun StalkitApp(mainContainer: MainContainer = rememberMainContainer(),
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                TopBarMain(onMenuButtClicked = {
-                    scope.launch {
-                        if (drawerState.isOpen) drawerState.close() else drawerState.open()
-                    }
+                TopBarMain(
+                    canGoBack = !isHomeScreen,
+                    onBack = { if (!isHomeScreen) navController.popBackStack() },
+                    canShowDrawer = isHomeScreen,
+                    onDrawerButtClicked = {
+                        if (isHomeScreen) {
+                            scope.launch {
+                                if (drawerState.isOpen) drawerState.close() else drawerState.open()
+                            }
+                        }
                 })
             }) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                Screens(navController, mainVM)
+                Main(mainVM, navController)
             }
         }
     }
 }
 
 @Composable
-fun Screens(navController: NavHostController, mainVM: MainVM) {
-    NavHost(navController = navController, startDestination = Routes.Videos) {
-        composable<Routes.Login> {
+fun Home(mainVM: MainVM) {
+    Anal.print("Home")
+    val profileState = mainVM.profileState.collectAsStateWithLifecycle()
+    when (profileState.value) {
+        is CurrentUserProfileState.Idle -> {
+            Anal.print("Home idle")
+        }
+        is CurrentUserProfileState.NotLoggedIn -> {
+            Anal.print("Home CurrentUserProfileState.NotLoggedIn")
             LoginScreen(onLoggedIn = {
                 Anal.print("onLoggedIn")
-                navController.popBackStack()
             })
         }
-        composable<Routes.Videos> {
-            VideosScreen(mainVM, onItemClicked = { video ->
-                navController.currentBackStackEntry?.savedStateHandle?.set(Routes.VIDEO_ARG, video)
-                navController.navigate(Routes.VideoView)
-            }, login = {
-                Anal.print("go to login")
-                navController.navigate(Routes.Login)
-            })
+        is CurrentUserProfileState.InfoLoaded -> {
+            Anal.print("Home CurrentUserProfileState.InfoLoaded")
+            val userInfo = (profileState.value as CurrentUserProfileState.InfoLoaded)
+            VideosScreen(userInfo)
         }
-        composable<Routes.VideoView> {
-            val video = navController.previousBackStackEntry?.savedStateHandle?.get<Video>(Routes.VIDEO_ARG)
-            video?.let {
-                VideoScreen(video)
-            }
+    }
+}
+
+@Composable
+fun Main(mainVM: MainVM, navController: NavHostController = rememberNavController()) {
+    Anal.print("Main")
+    NavHost(navController = navController, startDestination = Routes.Home.name) {
+        composable(Routes.Home.name) {
+            Home(mainVM)
+        }
+        composable(Routes.Login.name) {
+            LoginScreen(onLoggedIn = {
+                Anal.print("onLoggedIn")
+            })
         }
     }
 }

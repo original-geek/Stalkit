@@ -1,5 +1,6 @@
 package com.example.stalkit
 
+import android.util.Log
 import com.example.stalkit.data.login.LoginHelper
 import com.example.stalkit.data.login.LoginStatus
 import org.junit.Test
@@ -12,6 +13,8 @@ import org.junit.Assert.*
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 class ExampleUnitTest {
+
+
 
     @Test
     fun testParsing() {

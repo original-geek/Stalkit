@@ -3,6 +3,7 @@ package com.example.stalkit.ui.screens
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -15,11 +16,16 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.example.stalkit.Anal
 import com.example.stalkit.data.entities.Video
 
 @Composable
 fun VideoScreen(video: Video) {
-
+/*
+ video is played in WebView because the app does not have direct access to video file
+  and it needs a browser engine to play video by the provided link in video.player
+ */
+    Anal.print("video " + video.player + " ")
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(factory = {
             WebView(it).apply {
@@ -28,9 +34,12 @@ fun VideoScreen(video: Video) {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
-                webChromeClient = object : WebChromeClient() {
+                webViewClient = object: WebViewClient() {
 
                 }
+              //  webChromeClient = object : WebClient() {
+
+                //}
                 loadUrl(video.player)
             }
         }, update = {

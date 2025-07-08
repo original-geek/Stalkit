@@ -9,8 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.stalkit.Anal
 import com.example.stalkit.data.db.LoginEntity
@@ -25,25 +31,28 @@ import com.example.stalkit.ui.main.MainVM
 fun LoginScreen(loginContainer: LoginContainer = rememberLoginContainer(),
                 loginVM: LoginVM = viewModel(factory = loginContainer.vmFactory),
                 onLoggedIn: (token: LoginEntity) -> Unit) {
-    Anal.print("Login Screen")
-    val state = loginVM.loginState.collectAsState()
+    val state = loginVM.loginState.collectAsStateWithLifecycle()
+    var loginCalled by remember { mutableStateOf(false) }
     when (state.value) {
         is LoginState.Idle -> {
-            LaunchedEffect(state.value) {
-                loginVM.sendIntent(LoginIntent.Login)
+            Anal.print("Login Screen LoginState.Idle")
+            if (!loginCalled) {
+                LaunchedEffect(true) {
+                    loginVM.sendIntent(LoginIntent.Login)
+                }
+                loginCalled = true
             }
         }
         is LoginState.LoginFlowStarted -> {
+            Anal.print("Login Screen LoginState.LoginFlowStarted")
             MyWebView(url = UrlScheme.AUTH_URL) { url ->
                 loginVM.sendIntent(LoginIntent.LoginCheck(url))
             }
         }
         is LoginState.LoggedIn -> {
-            LaunchedEffect(state.value) {
-                onLoggedIn((state.value as LoginState.LoggedIn).token)
-            }
+            Anal.print("Login Screen LoginState.LoggedIn")
+            onLoggedIn((state.value as LoginState.LoggedIn).token)
         }
-
     }
 }
 
