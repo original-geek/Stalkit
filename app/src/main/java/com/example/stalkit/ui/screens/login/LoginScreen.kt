@@ -28,30 +28,23 @@ import com.example.stalkit.ui.main.CurrentUserProfileState
 import com.example.stalkit.ui.main.MainVM
 
 @Composable
-fun LoginScreen(loginContainer: LoginContainer = rememberLoginContainer(),
-                loginVM: LoginVM = viewModel(factory = loginContainer.vmFactory),
-                onLoggedIn: (token: LoginEntity) -> Unit) {
-    val state = loginVM.loginState.collectAsStateWithLifecycle()
-    var loginCalled by remember { mutableStateOf(false) }
+fun LoginScreen(mainVM: MainVM) {
+    val state = mainVM.profileState.collectAsStateWithLifecycle()
     when (state.value) {
-        is LoginState.Idle -> {
-            Anal.print("Login Screen LoginState.Idle")
-            if (!loginCalled) {
-                LaunchedEffect(true) {
-                    loginVM.sendIntent(LoginIntent.Login)
-                }
-                loginCalled = true
+        is CurrentUserProfileState.Idle -> {
+            Anal.print("Login Screen Idle")
+            LaunchedEffect(true) {
+                mainVM.sendIntent(CurrentUserProfileIntent.Login)
             }
         }
-        is LoginState.LoginFlowStarted -> {
-            Anal.print("Login Screen LoginState.LoginFlowStarted")
+        is CurrentUserProfileState.NotLoggedIn -> {
+            Anal.print("Login Screen NotLoggedInt")
             MyWebView(url = UrlScheme.AUTH_URL) { url ->
-                loginVM.sendIntent(LoginIntent.LoginCheck(url))
+                mainVM.sendIntent(CurrentUserProfileIntent.LoginCheck(url))
             }
         }
-        is LoginState.LoggedIn -> {
+        is CurrentUserProfileState.InfoLoaded -> {
             Anal.print("Login Screen LoginState.LoggedIn")
-            onLoggedIn((state.value as LoginState.LoggedIn).token)
         }
     }
 }

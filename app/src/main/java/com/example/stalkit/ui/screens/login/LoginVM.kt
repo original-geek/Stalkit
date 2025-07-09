@@ -17,56 +17,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-sealed interface LoginState {
-    object Idle: LoginState
-    object LoginFlowStarted: LoginState
-    data class LoggedIn(val token: LoginEntity): LoginState
-}
 
-sealed interface LoginIntent {
-    object Login: LoginIntent
-    data class LoginCheck(val url: String?): LoginIntent
-}
 
 @Singleton
 class LoginVM @Inject constructor(private val userData: UserData) : ViewModel() {
 
-    private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
-    val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
-
-
-    init {
-        Anal.print("LoginVM init")
-    }
-
-    private fun login() {
-        viewModelScope.launch {
-            userData.closeAllSessions()
-            _loginState.emit(LoginState.LoginFlowStarted)
-        }
-    }
-
-    private fun loginCheck(url: String?) {
-        url?.let {
-            val status = LoginHelper.checkAuthUrl(url)
-            if (status is LoginStatus.Succeed) {
-                viewModelScope.launch {
-                    userData.setLoggedIn(status.token)
-                    _loginState.emit(LoginState.LoggedIn(status.token))
-                }
-            }
-        }
-    }
-
-    fun sendIntent(intent: LoginIntent) {
-        when (intent) {
-            is LoginIntent.Login -> {
-                login()
-            }
-            is LoginIntent.LoginCheck -> {
-                loginCheck(intent.url)
-            }
-        }
-    }
 
 }

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -70,9 +71,10 @@ import kotlinx.coroutines.flow.map
 
 @Composable
 fun VideosScreen(
-    userInfo: CurrentUserProfileState.InfoLoaded) {
+    userInfo: CurrentUserProfileState.InfoLoaded,
+    navController: NavHostController
+) {
     Anal.print("VideosScreen CurrentUserProfileState.InfoLoaded")
-    val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.Videos.name) {
         composable(route = Routes.Videos.name) {
             Videos(userInfo, onItemClicked = { video ->

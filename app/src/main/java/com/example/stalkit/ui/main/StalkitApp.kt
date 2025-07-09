@@ -10,10 +10,16 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -40,16 +46,15 @@ fun StalkitApp(mainContainer: MainContainer = rememberMainContainer(),
                mainVM: MainVM = viewModel(factory = mainContainer.vmFactory)) {
     Anal.print("StalkitApp")
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val navController = rememberNavController()
     val scope = rememberCoroutineScope()
-    val isHomeScreen = navController.previousBackStackEntry == null
-
+    val navController = rememberNavController()
+    val entry by navController.currentBackStackEntryAsState()
+    val isHomeScreen = entry == null || entry?.destination?.route == Routes.Videos.name
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
                 CurrentUserProfile(mainVM, login = {
-                    navController.navigate(Routes.Login.name)
                     scope.launch { drawerState.close() }
                 })
             }
@@ -71,14 +76,14 @@ fun StalkitApp(mainContainer: MainContainer = rememberMainContainer(),
                 })
             }) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                Main(mainVM, navController)
+                Home(mainVM, navController)
             }
         }
     }
 }
 
 @Composable
-fun Home(mainVM: MainVM) {
+fun Home(mainVM: MainVM, navController: NavHostController) {
     Anal.print("Home")
     val profileState = mainVM.profileState.collectAsStateWithLifecycle()
     when (profileState.value) {
@@ -87,29 +92,12 @@ fun Home(mainVM: MainVM) {
         }
         is CurrentUserProfileState.NotLoggedIn -> {
             Anal.print("Home CurrentUserProfileState.NotLoggedIn")
-            LoginScreen(onLoggedIn = {
-                Anal.print("onLoggedIn")
-            })
+            LoginScreen(mainVM)
         }
         is CurrentUserProfileState.InfoLoaded -> {
             Anal.print("Home CurrentUserProfileState.InfoLoaded")
             val userInfo = (profileState.value as CurrentUserProfileState.InfoLoaded)
-            VideosScreen(userInfo)
-        }
-    }
-}
-
-@Composable
-fun Main(mainVM: MainVM, navController: NavHostController = rememberNavController()) {
-    Anal.print("Main")
-    NavHost(navController = navController, startDestination = Routes.Home.name) {
-        composable(Routes.Home.name) {
-            Home(mainVM)
-        }
-        composable(Routes.Login.name) {
-            LoginScreen(onLoggedIn = {
-                Anal.print("onLoggedIn")
-            })
+            VideosScreen(userInfo, navController)
         }
     }
 }

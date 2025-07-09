@@ -31,6 +31,8 @@ sealed interface CurrentUserProfileState {
 }
 
 sealed interface CurrentUserProfileIntent {
+    object Login: CurrentUserProfileIntent
+    data class LoginCheck(val url: String?): CurrentUserProfileIntent
     object Logout: CurrentUserProfileIntent
 }
 
@@ -71,8 +73,31 @@ class MainVM @Inject constructor(
         }
     }
 
+    private fun login() {
+        viewModelScope.launch {
+            userData.closeAllSessions()
+        }
+    }
+
+    private fun loginCheck(url: String?) {
+        url?.let {
+            val status = LoginHelper.checkAuthUrl(url)
+            if (status is LoginStatus.Succeed) {
+                viewModelScope.launch {
+                    userData.setLoggedIn(status.token)
+                }
+            }
+        }
+    }
+
     fun sendIntent(intent: CurrentUserProfileIntent) {
         when (intent) {
+            is CurrentUserProfileIntent.Login -> {
+                login()
+            }
+            is CurrentUserProfileIntent.LoginCheck -> {
+                loginCheck(intent.url)
+            }
             is CurrentUserProfileIntent.Logout -> {
                 logout()
             }
