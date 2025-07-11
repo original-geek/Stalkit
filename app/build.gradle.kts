@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.stalkit"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.stalkit"
@@ -70,6 +70,7 @@ dependencies {
     implementation("androidx.media3:media3-common:1.4.1")
 
     implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.adaptive.android)
     testImplementation(libs.androidx.paging.common)
     implementation(libs.androidx.paging.compose)
 

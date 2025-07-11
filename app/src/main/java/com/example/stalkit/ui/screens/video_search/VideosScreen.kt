@@ -1,7 +1,9 @@
 package com.example.stalkit.ui.screens.video_search
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -64,6 +66,7 @@ import com.example.stalkit.ui.main.RouteArgs
 import com.example.stalkit.ui.main.Routes
 import com.example.stalkit.ui.menu.TopBarMain
 import com.example.stalkit.ui.screens.VideoScreen
+import com.example.stalkit.ui.screens.openVideoIn
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -192,7 +195,7 @@ fun ShowVideoItems(items: List<Video>,
         state = state
     ) {
         itemsIndexed(items, key = { _, item -> item.player }) { ind, item ->
-            MediaItem(item.thumb, onItemClicked = { onItemClicked(item) })
+            MediaItem(item, onItemClicked = { onItemClicked(item) })
         }
     }
     LaunchedEffect(state, items) {
@@ -213,11 +216,20 @@ fun LazyGridLayoutInfo.isScrolledToEnd(): Boolean {
     return lastVisibleIndex == totalItemsCount - 1
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MediaItem(url: String?, onItemClicked: () -> Unit) {
-    Box(modifier = Modifier.clickable { onItemClicked() }) {
+fun MediaItem(video: Video, onItemClicked: () -> Unit) {
+    val c = LocalContext.current
+    Box(modifier = Modifier.combinedClickable(
+        onLongClick = {
+            openVideoIn(c, video)
+        },
+        onClick = {
+            onItemClicked()
+        }
+    )) {
         AsyncImage(
-            model = url,
+            model = video.thumb,
             contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
